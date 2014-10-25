@@ -8,9 +8,9 @@
 #ifndef CUSTOMER_H_
 #define CUSTOMER_H_
 
-typedef struct {
-	int custNum;
-	struct Customer * behind;
+typedef struct Customer {
+	int id;
+	struct Customer* behind;
 	int timeWaiting;
 	int timeWithTeller;
 } Customer;

@@ -1,4 +1,7 @@
+#include <stdio.h>
+#include <assert.h>
 #include <pthread.h>
+
 #include "queue.h"
 
 int maxDepth = 0;
@@ -23,7 +26,7 @@ void enqueue(conQueue *q, Customer * cust)
 	pthread_mutex_unlock(&mutex);
 }
 
-Customer * dequeue(conQueue *q)
+Customer* dequeue(conQueue *q)
 {
 	Customer * cust = 0;
 	pthread_mutex_lock(&mutex);
@@ -52,10 +55,33 @@ void print_queue(conQueue *q)
 	pthread_mutex_lock(&mutex);
 	Customer * cust = q->first;
 
-	while (cust->behind) {
-		printf("%c \n", cust->custNum);
+	while (cust) {
+		printf("%d \n", cust->id);
 		cust = cust->behind;
 	}
 	pthread_mutex_unlock(&mutex);
+}
+
+// Used for testing code
+int main() {
+	Customer* cust;
+	Customer cust0 = {0, 0, 0, 0};
+	Customer cust1 = {1, 0, 0, 0};
+
+	conQueue queue = {0, 0, 0};
+	assert (queue.count == 0);
+
+	enqueue(&queue, &cust0);
+	enqueue(&queue, &cust1);
+	assert (queue.count == 2);
+
+	print_queue(&queue);
+
+	cust = dequeue(&queue);
+	assert (cust->id == 0);
+	assert (queue.count == 1);
+	cust = dequeue(&queue);
+	assert (cust->id == 1);
+	assert (queue.count == 0);
 }
 

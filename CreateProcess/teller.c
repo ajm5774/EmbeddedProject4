@@ -4,8 +4,7 @@
  *  Created on: Oct 27, 2014
  *      Author: ajm5774
  */
-
-
+#include "teller.h"
 
 static int TellerWaitTimes[NUMBER_OF_TELLERS][100] = {0};
 static int TellerWaitCounter[NUMBER_OF_TELLERS] = {0};
