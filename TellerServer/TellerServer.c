@@ -8,6 +8,14 @@
 #include <pthread.h>
 #include <sched.h>
 #include "TellerInterface.h"
+#include "queue.h"
+
+static queue q = {0,0,0};
+static Customer * custArray[1000];
+static int simMinute = 100;//100ms = 1 minute
+
+static int TellerWaitTimes[NUMBER_OF_TELLERS][100] = {0};
+static int TellerWaitCounter[NUMBER_OF_TELLERS] = {0};
 
 static pthread_t threads[NUMBER_OF_TELLERS] ;	// where we store the results of the thread creation
 static pthread_t *threadIDs[NUMBER_OF_TELLERS] = {
@@ -20,9 +28,49 @@ static void TellerThread( int *threadNumber )
 
 	printf("Thread %d started\n", myThreadNumber) ;
 	// add mutex here to wait for something to do in a loop that continues until there are no more customers.
+
+	//loop
+	//wait for customer in the queue
+	//process customer request
+	//send to semaphore
+
 	// Also could use ThreadDestroy() from the main to kill all threads when out of customers for the day.
 	sleep(2 + *threadNumber) ;
 	printf("Thread %d exiting\n", myThreadNumber) ;
+}
+
+//Method to create customers
+static void CustomersThread(int * arg)
+{
+	Customer *cust;
+	int sleepMins;//in minutes
+	int custNum = 0;
+	int maxSleepTime = 4;
+	int remMinsInDay = 7*60;//7 hours 60 minutes * .1 minutes
+
+	//loop until theres no more time in the day
+	while(remMinsInDay > 0)
+	{
+		//create customer
+		cust = malloc( sizeof(Customer) );
+		cust->custNum = custNum;
+		cust->timeWaiting = 0;
+		cust->timeWithTeller = 0;
+		cust->behind = NULL;
+
+		//Add customer to the list of all customers (for metrics)
+		custArray[custNum++] = cust;
+
+		//Add customer to the queue
+		enqueue(&q, cust);
+
+		//wait 1-4 sim minutes before creating anothe customer
+		sleepMins = (rand() % maxSleepTime) + 1;
+		usleep(sleepMins * simMinute);
+
+		//decrement the number of minutes remaining in the day
+		remMinsInDay = remMinsInDay - sleepMins;
+	}
 }
 
 static void StartThreads()
@@ -43,6 +91,9 @@ static void StartThreads()
 	{
 		pthread_create( threadIDs[loopCounter], &threadAttributes, (void *)TellerThread, &loopCounter ) ;
 	}
+
+	//start customer creation thread
+	pthread_create( threadIDs[++loopCounter], &threadAttributes, (void *)CustomersThread, &loopCounter) ;
 }
 
 static void ProcessRequests()
@@ -53,7 +104,6 @@ static void ProcessRequests()
 	sleep(10) ;	// allow enough demo time for the teller threads to exit.
 	printf("Teller Server Exiting\n") ;
 }
-
 
 int main(int argc, char *argv[]) {
 	printf("Teller Server is started\n");

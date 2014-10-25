@@ -10,10 +10,6 @@
 #include <assert.h>
 #include <sys/stat.h>			// provides constants used for setting mode of semaphore
 #include "TellerInterface.h"	// application specific header file
-#include "queue.h"
-
-queue q = {0,0,0};
-Customer * custArray[1000];
 
 // Starts the Teller Server process
 static pid_t StartTellerTask()
@@ -48,21 +44,7 @@ static void CloseTellerSemaphore( sem_t *ptrSemaphore)
 	assert( status == 0 ) ;
 }
 
-static void StartCustCreateThread()
-{
-	//pthread_create( threadIDs[loopCounter], &threadAttributes, (void *)CreateCustomers) ;
-}
 
-static void CreateCustomers()
-{
-	int custNum = 0;
-	while(1)
-	{
-		Customer cust = {custNum, 0};
-		custArray[custNum++] = cust;
-		enqueue(q, );
-	}
-}
 
 int main(int argc, char *argv[])
 {
