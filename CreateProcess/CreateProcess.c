@@ -30,7 +30,7 @@ static sem_t *CreateTellerSemaphore()
 {
 	mode_t myMode = S_IRWXU | S_IRWXG | S_IRWXO;	// gives owner, group, and world Read, Write, and eXecute permissions
 
-	return sem_open(tellerSemaphore, O_CREAT, myMode, 0 ) ;
+	return sem_open(tellerSemaphore, O_CREAT, myMode, NUMBER_OF_TELLERS ) ;
 }
 
 static void CloseTellerSemaphore( sem_t *ptrSemaphore)

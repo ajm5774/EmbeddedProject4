@@ -5,10 +5,14 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <semaphore.h>
 #include <pthread.h>
 #include <sched.h>
+
 #include "TellerInterface.h"
 #include "queue.h"
+
+static sem_t *mySemaphore;
 
 static queue q = {0,0,0};
 static Customer * custArray[1000];
@@ -21,6 +25,19 @@ static pthread_t threads[NUMBER_OF_TELLERS] ;	// where we store the results of t
 static pthread_t *threadIDs[NUMBER_OF_TELLERS] = {
 		&threads[0], &threads[1], &threads[2]
 };	// sets up an array of pointers to where we store the thread creation results
+
+static sem_t *OpenTellerSemaphore()
+{
+	return sem_open(tellerSemaphore) ;
+}
+
+static void CloseTellerSemaphore( sem_t *ptrSemaphore)
+{
+	// Release the semaphore resources
+	int status = sem_close( ptrSemaphore ) ;
+	
+	assert( status == 0 ) ;
+}
 
 static void TellerThread( int *threadNumber )
 {
@@ -96,18 +113,101 @@ static void StartThreads()
 	pthread_create( threadIDs[++loopCounter], &threadAttributes, (void *)CustomersThread, &loopCounter) ;
 }
 
-static void ProcessRequests()
+// opens a named channel to be used for sending messages to this server.
+// Despite the notes in the QNX documentation you do not actually need the gns service to be running
+// to use named channels locally.
+static name_attach_t *CreateNamedChannel()
+{
+	return name_attach( NULL, serverNamedChannel, 0 ) ;
+}
+
+// close the named channel just to clean up before exiting the server
+static void CloseNamedChannel( name_attach_t *ptrChannel )
+{
+	assert( name_detach( ptrChannel, 0 ) == 0 ) ;
+}
+
+// derived from demo code provided by QNX on the name_attach() page in the programmer's library
+static int ProcessPulse( tellerRequest *ptrMessage )
+{
+	int allDone = 0 ;
+
+    switch (ptrMessage->hdr.code) {
+    case _PULSE_CODE_DISCONNECT:
+        /*
+         * A client disconnected all its connections (called
+         * name_close() for each name_open() of our name) or
+         * terminated
+         */
+        ConnectDetach(ptrMessage->hdr.scoid);
+        allDone = 1 ;
+        break;
+    case _PULSE_CODE_UNBLOCK:
+        /*
+         * REPLY blocked client wants to unblock (was hit by
+         * a signal or timed out).  It's up to you if you
+         * reply now or later.
+         */
+        break;
+    default:
+        /*
+         * A pulse sent by one of your processes or a
+         * _PULSE_CODE_COIDDEATH or _PULSE_CODE_THREADDEATH
+         * from the kernel?
+         */
+        break;
+    }
+    return allDone ;		// if true then got the disconnect
+}
+
+static void ProcessOneRequest( int receiveID, tellerRequest *ptrMessage )
+{
+    /* name_open() sends a connect message, must EOK this */
+    if ( ptrMessage->hdr.type == _IO_CONNECT )
+    	MsgReply( receiveID, EOK, NULL, 0 );
+    else
+    	MsgReply( receiveID, EOK, ptrMessage, sizeof(tellerRequest) ) ;
+}
+
+static void ProcessRequests( name_attach_t *ptrChannel )
 {
 	// add code here to receive requests including teller service request and
 	// the exit request.
 	// If you get an exit request then you may want to close all of the threads from here.
+
+	int receivedID ;
+	int allDone = 0 ;
+	tellerRequest receivedMessage ;
+
+	for ( ; ; )
+	{
+		receivedID = MsgReceive( ptrChannel->chid, &receivedMessage, sizeof(receivedMessage), NULL ) ;
+		if ( receivedID == 0 )
+			allDone = ProcessPulse( &receivedMessage ) ;
+		else
+			ProcessOneRequest( receivedID, &receivedMessage ) ;
+
+		if ( allDone )
+			break ;
+	}
+	
 	sleep(10) ;	// allow enough demo time for the teller threads to exit.
 	printf("Teller Server Exiting\n") ;
 }
 
 int main(int argc, char *argv[]) {
-	printf("Teller Server is started\n");
+	mySemaphore = AccessTellerSemaphore() ;	// Create the teller semaphore by name
+	name_attach_t *ptrNamedChannel = CreateNamedChannel() ;
+	
+	if ( ptrNamedChannel )
+		printf("Teller Server is started\n");
+	else
+		printf("Named Channel was not created\n") ;
+
 	StartThreads() ;
-	ProcessRequests() ;
+	ProcessRequests( ptrNamedChannel ) ;
+	
+	CloseNamedChannel( ptrNamedChannel ) ;
+	CloseTellerSemaphore(mySemaphore);
 	return EXIT_SUCCESS;
 }
