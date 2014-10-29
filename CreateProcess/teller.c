@@ -4,6 +4,9 @@
  *  Created on: Oct 27, 2014
  *      Author: ajm5774
  */
+#include <stdio.h>
+#include <pthread.h>
+
 #include "teller.h"
 
 static int TellerWaitTimes[NUMBER_OF_TELLERS][100] = {0};
@@ -11,6 +14,8 @@ static int TellerWaitCounter[NUMBER_OF_TELLERS] = {0};
 
 static pthread_t threads[NUMBER_OF_TELLERS] ;	// where we store the results of the thread creation
 static pthread_t *threadIDs[NUMBER_OF_TELLERS] = {&threads[0], &threads[1], &threads[2]};
+
+extern conQueue cq;
 
 static void TellerThread( int *threadNumber )
 {

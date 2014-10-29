@@ -9,8 +9,6 @@
 #define TELLERINTERFACE_H_
 
 #define NUMBER_OF_TELLERS 3
-
-const char tellerSemaphore[] = "TellerSemaphore" ;	// this will show up in /dev/sem/tmp
-conQueue cq = {0,0,0};					// The queue of customers
+#include "queue.h"
 
 #endif /* TELLERINTERFACE_H_ */

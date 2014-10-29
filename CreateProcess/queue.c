@@ -63,6 +63,7 @@ void print_queue(conQueue *q)
 }
 
 // Used for testing code
+/*
 int main() {
 	Customer* cust;
 	Customer cust0 = {0, 0, 0, 0};
@@ -84,4 +85,5 @@ int main() {
 	assert (cust->id == 1);
 	assert (queue.count == 0);
 }
+*/
 

@@ -15,5 +15,6 @@ typedef struct Customer {
 	int timeWithTeller;
 } Customer;
 
+void StartCustomerThread();
 
 #endif /* CUSTOMER_H_ */
