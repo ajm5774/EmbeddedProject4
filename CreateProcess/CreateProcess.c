@@ -14,8 +14,17 @@ conQueue cq = {0, 0, 0};
 
 int main(int argc, char *argv[])
 {
+	int i;
+	i = setStartTime();
+	i = getSimTime();
+	i = getSimTimeMs();
+
+	printf("%d", i);
+
+
 	//start teller threads
 	StartTellerThreads();
+
 	//start customer creation thread
 	StartCustomerThread();
 	pthread_exit();

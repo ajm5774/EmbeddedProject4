@@ -1,30 +1,39 @@
+#include <time.h>
 #include "TellerInterface.h"
 
-// The time of the day in MSec
-static int timeOfDay = 0;
+struct timespec start, current;
+int DayStart = 9; //day starts at 9 am
 
-int getTimeMS() {
-	return timeOfDay;
+int getSimTime()
+{
+	return getSimTimeMs() / 1000;
 }
 
-int getTime() {
-	return timeOfDay/SIMULATION_MINUTE_MSEC;
+int getSimTimeMs()
+{
+    if( clock_gettime( CLOCK_REALTIME, &current) == -1 ) {
+      perror( "clock gettime" );
+      return -1;
+    }
+    printf("start: %d, current: %d ", start.tv_nsec, current.tv_nsec);
+
+    return (current.tv_nsec - start.tv_nsec)/1000;
 }
 
-void setTimeMS(int msec) {
-	timeOfDay = msec;
+int setStartTime()
+{
+	if( clock_gettime( CLOCK_REALTIME, &start) == -1 ) {
+	  perror( "clock gettime" );
+	  return -1;
+	}
+	return start.tv_nsec;
 }
 
-void setTime(int sec) {
-	timeOfDay = sec * SIMULATION_MINUTE_MSEC;
+int getHour(int timeMs) {
+	return ((timeMs /60 / 1000) + DayStart) % 12;
 }
 
-int getHour(int time) {
-	int hour = (START_HOUR + timeOfDay/SIMULATION_MINUTE_MSEC/60) % 13;
-	return (hour < 9) ? hour+1 : hour;
-}
-
-int getMinute(int time) {
-	return time/SIMULATION_MINUTE_MSEC % 60;
+int getMinute(int timeMs) {
+	return timeMs/1000 % 60;
 }
 

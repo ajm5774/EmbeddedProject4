@@ -16,13 +16,11 @@
 #define MINUTES_PER_DAY (420)		// 60 minutes * 7 hours
 #define START_HOUR (9)
 
-int getTimeMS();
-int getTime();
+int getSimTime();
+int getSimTimeMs();
+int setStartTime();
 
-void setTimeMS();
-void setTime();
-
-int getHour(int);
-int getMinute(int);
+int getHour(int time);
+int getMinute(int time);
 
 #endif /* TELLERINTERFACE_H_ */

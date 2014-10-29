@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <unistd.h>
-
 #include "teller.h"
 
 static int TellerWaitTimes[NUMBER_OF_TELLERS][100] = {0};
@@ -34,25 +33,31 @@ static void TellerThread( int *threadNumber )
 		if(cust)
 		{
 			// Customer out of line, record the time.
-			cust->timeWaiting = getTimeMS() - cust->timeStart;
+			cust->timeWaiting = getSimTimeMs() - cust->timeStart;
 			
 			printf("Teller %d handling customer %d.\n", myThreadNumber, cust->id);
 
 			// Each customer requires between 30 seconds and 6 minutes for help
 			sleepMins = (rand() % (maxSleepTimeMS - halfSecondMS)) + halfSecondMS;
-			usleep(sleepMins * SIMULATION_MINUTE_USEC / SIMULATION_MINUTE_MSEC);
+			usleep(sleepMins);
 
 			// Customer finished. Record times
 			cust->timeWithTeller = sleepMins;
 			cust->timeEnd = cust->timeStart + cust->timeWaiting + cust->timeWithTeller;
 
-			printf("Teller %d finished processing customer %d at %dh %dm.\n", 
+			printf("Teller %d finished processing customer %d at %d.\n",
+								myThreadNumber,
+								cust->id,
+								cust->timeEnd);
+
+			/*printf("Teller %d finished processing customer %d at %dh %dm.\n",
 					myThreadNumber, 
 					cust->id, 
 					getHour(cust->timeEnd), 
-					getMinute(cust->timeEnd));
+					getMinute(cust->timeEnd));*/
 		}
-	} while (cust || getTime() < MINUTES_PER_DAY);
+	} while (cust || getSimTime() < MINUTES_PER_DAY);
+	printf("Teller %d thread stopped \n", myThreadNumber);
 }
 
 void StartTellerThreads()

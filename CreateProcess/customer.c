@@ -24,20 +24,22 @@ static void CustomersThread(int * arg)
 	int id = 0;
 	int sleepMinsMS;//in msec
 	int maxSleepTime = 4 * SIMULATION_MINUTE_MSEC;
+	int minSleepTime = SIMULATION_MINUTE_MSEC;
 
 	//loop until theres no more time in the day
-	while(getTime() < MINUTES_PER_DAY)
+	while(getSimTime() < MINUTES_PER_DAY)
 	{
 		//create customer
 		cust = malloc( sizeof(Customer) );
 		cust->id = id;
-		cust->timeStart = getTimeMS();
+		cust->timeStart = getSimTimeMs();
 		cust->timeWaiting = 0;
 		cust->timeWithTeller = 0;
 		cust->timeEnd = 0;
 		cust->behind = 0;
 
-		printf("Customer %d arrived at %dh %dm.\n", cust->id, getHour(getTimeMS()), getMinute(getTimeMS()));
+		printf("Customer %d arrived at %d.\n", cust->id, cust->timeStart);
+		//printf("Customer %d arrived at %dh %dm.\n", cust->id, getHour(cust->timeStart), getMinute(cust->timeStart));
 
 		//Add customer to the list of all customers (for metrics)
 		custArray[id++] = cust;
@@ -45,14 +47,11 @@ static void CustomersThread(int * arg)
 		//Add customer to the queue
 		enqueue(&cq, cust);
 
-		//wait 1-4 sim minutes before creating anothe customer
-		sleepMinsMS = (rand() % maxSleepTime) + SIMULATION_MINUTE_MSEC;
-		//usleep(sleepMinsMS * SIMULATION_MINUTE_USEC / SIMULATION_MINUTE_MSEC);
-		usleep(sleepMinsMS * SIMULATION_MINUTE_USEC / SIMULATION_MINUTE_MSEC);
-
-		//decrement the number of minutes remaining in the day
-		setTimeMS(getTimeMS() + sleepMinsMS);
+		//wait 1-4 sim minutes before creating another customer
+		sleepMinsMS = (rand() % (maxSleepTime - minSleepTime)) + minSleepTime;
+		usleep(sleepMinsMS);
 	}
+	printf("Customer creation thread stopped \n");
 }
 
 void StartCustomerThread()
