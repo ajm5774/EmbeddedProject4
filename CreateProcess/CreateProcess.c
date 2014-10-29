@@ -4,7 +4,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <semaphore.h>
 #include <spawn.h>
 #include <fcntl.h>				// defines O_CREAT for creating semaphore
 #include <assert.h>
@@ -19,4 +18,5 @@ int main(int argc, char *argv[])
 	StartTellerThreads();
 	//start customer creation thread
 	StartCustomerThread();
+	pthread_exit();
 }

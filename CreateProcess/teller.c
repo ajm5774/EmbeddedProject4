@@ -5,7 +5,9 @@
  *      Author: ajm5774
  */
 #include <stdio.h>
+#include <stdlib.h>
 #include <pthread.h>
+#include <unistd.h>
 
 #include "teller.h"
 
@@ -20,16 +22,37 @@ extern conQueue cq;
 static void TellerThread( int *threadNumber )
 {
 	int myThreadNumber = *threadNumber + 1 ;
+	int maxSleepTimeMS = SIMULATION_MINUTE_MSEC * 6;
+	int halfSecondMS = SIMULATION_MINUTE_MSEC / 2;
+	int sleepMins;
+	Customer *cust;
 
-	while(1)
+	do
 	{
-		Customer * cust = dequeue(&cq);
+		cust = dequeue(&cq);
 
 		if(cust)
 		{
-			//do some processing
+			// Customer out of line, record the time.
+			cust->timeWaiting = getTimeMS() - cust->timeStart;
+			
+			printf("Teller %d handling customer %d.\n", myThreadNumber, cust->id);
+
+			// Each customer requires between 30 seconds and 6 minutes for help
+			sleepMins = (rand() % (maxSleepTimeMS - halfSecondMS)) + halfSecondMS;
+			usleep(sleepMins * SIMULATION_MINUTE_USEC / SIMULATION_MINUTE_MSEC);
+
+			// Customer finished. Record times
+			cust->timeWithTeller = sleepMins;
+			cust->timeEnd = cust->timeStart + cust->timeWaiting + cust->timeWithTeller;
+
+			printf("Teller %d finished processing customer %d at %dh %dm.\n", 
+					myThreadNumber, 
+					cust->id, 
+					getHour(cust->timeEnd), 
+					getMinute(cust->timeEnd));
 		}
-	}
+	} while (cust || getTime() < MINUTES_PER_DAY);
 }
 
 void StartTellerThreads()

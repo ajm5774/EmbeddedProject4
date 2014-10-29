@@ -11,8 +11,10 @@
 typedef struct Customer {
 	int id;
 	struct Customer* behind;
+	int timeStart;
 	int timeWaiting;
 	int timeWithTeller;
+	int timeEnd;
 } Customer;
 
 void StartCustomerThread();

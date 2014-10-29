@@ -13,8 +13,7 @@
 #include "TellerInterface.h"
 
 Customer * custArray[1000];
-static pthread_t *custThreadID;
-static int simMinute = 100;//100ms = 1 minute
+static pthread_t custThreadID;
 
 extern conQueue cq;
 
@@ -22,21 +21,23 @@ extern conQueue cq;
 static void CustomersThread(int * arg)
 {
 	Customer *cust;
-	int sleepMins;//in minutes
 	int id = 0;
-	int maxSleepTime = 4;
-	int simMinute = 1000; // Simulation minute in ns
-	int remMinsInDay = 7*60;//7 hours 60 minutes * .1 minutes
+	int sleepMinsMS;//in msec
+	int maxSleepTime = 4 * SIMULATION_MINUTE_MSEC;
 
 	//loop until theres no more time in the day
-	while(remMinsInDay > 0)
+	while(getTime() < MINUTES_PER_DAY)
 	{
 		//create customer
 		cust = malloc( sizeof(Customer) );
 		cust->id = id;
+		cust->timeStart = getTimeMS();
 		cust->timeWaiting = 0;
 		cust->timeWithTeller = 0;
+		cust->timeEnd = 0;
 		cust->behind = 0;
+
+		printf("Customer %d arrived at %dh %dm.\n", cust->id, getHour(getTimeMS()), getMinute(getTimeMS()));
 
 		//Add customer to the list of all customers (for metrics)
 		custArray[id++] = cust;
@@ -45,11 +46,12 @@ static void CustomersThread(int * arg)
 		enqueue(&cq, cust);
 
 		//wait 1-4 sim minutes before creating anothe customer
-		sleepMins = (rand() % maxSleepTime) + 1;
-		usleep(sleepMins * simMinute);
+		sleepMinsMS = (rand() % maxSleepTime) + SIMULATION_MINUTE_MSEC;
+		//usleep(sleepMinsMS * SIMULATION_MINUTE_USEC / SIMULATION_MINUTE_MSEC);
+		usleep(sleepMinsMS * SIMULATION_MINUTE_USEC / SIMULATION_MINUTE_MSEC);
 
 		//decrement the number of minutes remaining in the day
-		remMinsInDay = remMinsInDay - sleepMins;
+		setTimeMS(getTimeMS() + sleepMinsMS);
 	}
 }
 
@@ -66,7 +68,7 @@ void StartCustomerThread()
 	pthread_attr_setschedparam(&threadAttributes, &parameters) ;	// set up the pthread_attr struct with the updated priority
 
 	//start customer creation thread
-	pthread_create( custThreadID, &threadAttributes, (void *)CustomersThread, 0) ;
+	pthread_create( &custThreadID, &threadAttributes, (void *)CustomersThread, 0) ;
 }
 
 
