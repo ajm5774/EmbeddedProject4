@@ -22,17 +22,17 @@ static void CustomersThread(int * arg)
 {
 	Customer *cust;
 	int id = 0;
-	int sleepMinsMS;//in msec
-	int maxSleepTime = 4 * SIMULATION_MINUTE_MSEC;
-	int minSleepTime = SIMULATION_MINUTE_MSEC;
+	int sleepMinsUS;//in usec
+	int maxSleepTimeMS = 4 * SIMULATION_MINUTE_MSEC;
+	int minSleepTimeMS = SIMULATION_MINUTE_MSEC;
 
 	//loop until theres no more time in the day
-	while(getSimTime() < MINUTES_PER_DAY)
+	while(getSimTimeMins() < MINUTES_PER_DAY)
 	{
 		//create customer
 		cust = malloc( sizeof(Customer) );
 		cust->id = id;
-		cust->timeStart = getSimTimeMs();
+		cust->timeStart = getSimTimeMilliMins();
 		cust->timeWaiting = 0;
 		cust->timeWithTeller = 0;
 		cust->timeEnd = 0;
@@ -48,8 +48,8 @@ static void CustomersThread(int * arg)
 		enqueue(&cq, cust);
 
 		//wait 1-4 sim minutes before creating another customer
-		sleepMinsMS = (rand() % (maxSleepTime - minSleepTime)) + minSleepTime;
-		usleep(sleepMinsMS);
+		sleepMinsUS = ((rand() % (maxSleepTimeMS - minSleepTimeMS)) + minSleepTimeMS) * 1000;
+		usleep(sleepMinsUS);
 	}
 	printf("Customer creation thread stopped \n");
 }

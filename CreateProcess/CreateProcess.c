@@ -16,8 +16,8 @@ int main(int argc, char *argv[])
 {
 	int i;
 	i = setStartTime();
-	i = getSimTime();
-	i = getSimTimeMs();
+	i = getSimTimeMins();
+	i = getSimTimeMilliMins();
 
 	printf("%d", i);
 

@@ -4,27 +4,32 @@
 struct timespec start, current;
 int DayStart = 9; //day starts at 9 am
 
-int getSimTime()
+long getSimTimeMins()
 {
-	return getSimTimeMs() / 1000;
+	return getSimTimeMilliMins() /1000;
 }
 
-int getSimTimeMs()
+long getSimTimeMilliMins()
 {
+	long secDiff;
+	long nanoSecDiff;
+	long ret;
     if( clock_gettime( CLOCK_REALTIME, &current) == -1 ) {
       perror( "clock gettime" );
-      return -1;
+      return 0;
     }
-    printf("start: %d, current: %d ", start.tv_nsec, current.tv_nsec);
-
-    return (current.tv_nsec - start.tv_nsec)/1000;
+    secDiff = current.tv_sec - start.tv_sec;
+    nanosecDiff = current.tv_nsec - start.tv_nsec;
+    ret = secDiff*1000 + nanosecDiff/100000;
+    printf("Sim Milli-Minutes: %d, with secDiff %d\n", ret, secDiff);
+	return ret;
 }
 
-int setStartTime()
+long setStartTime()
 {
 	if( clock_gettime( CLOCK_REALTIME, &start) == -1 ) {
 	  perror( "clock gettime" );
-	  return -1;
+	  return (long)0;
 	}
 	return start.tv_nsec;
 }

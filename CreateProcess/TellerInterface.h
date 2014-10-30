@@ -16,9 +16,9 @@
 #define MINUTES_PER_DAY (420)		// 60 minutes * 7 hours
 #define START_HOUR (9)
 
-int getSimTime();
-int getSimTimeMs();
-int setStartTime();
+long getSimTimeMins();
+long getSimTimeMilliMins();
+long setStartTime();
 
 int getHour(int time);
 int getMinute(int time);

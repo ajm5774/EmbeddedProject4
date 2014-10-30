@@ -23,7 +23,7 @@ static void TellerThread( int *threadNumber )
 	int myThreadNumber = *threadNumber + 1 ;
 	int maxSleepTimeMS = SIMULATION_MINUTE_MSEC * 6;
 	int halfSecondMS = SIMULATION_MINUTE_MSEC / 2;
-	int sleepMins;
+	int sleepTimeUS;
 	Customer *cust;
 
 	do
@@ -33,17 +33,17 @@ static void TellerThread( int *threadNumber )
 		if(cust)
 		{
 			// Customer out of line, record the time.
-			cust->timeWaiting = getSimTimeMs() - cust->timeStart;
+			cust->timeWaiting = getSimTimeMilliMins() - cust->timeStart;
 			
 			printf("Teller %d handling customer %d.\n", myThreadNumber, cust->id);
 
 			// Each customer requires between 30 seconds and 6 minutes for help
-			sleepMins = (rand() % (maxSleepTimeMS - halfSecondMS)) + halfSecondMS;
-			usleep(sleepMins);
+			sleepTimeUS = ((rand() % (maxSleepTimeMS - halfSecondMS)) + halfSecondMS) * 1000;
+			usleep(sleepTimeUS);
 
 			// Customer finished. Record times
-			cust->timeWithTeller = sleepMins;
-			cust->timeEnd = cust->timeStart + cust->timeWaiting + cust->timeWithTeller;
+			cust->timeWithTeller = sleepTimeUS * SIMULATION_MINUTE_MSEC;
+			cust->timeEnd = getSimTimeMilliMins();
 
 			printf("Teller %d finished processing customer %d at %d.\n",
 								myThreadNumber,
@@ -56,7 +56,7 @@ static void TellerThread( int *threadNumber )
 					getHour(cust->timeEnd), 
 					getMinute(cust->timeEnd));*/
 		}
-	} while (cust || getSimTime() < MINUTES_PER_DAY);
+	} while (cust || getSimTimeMins() < MINUTES_PER_DAY);
 	printf("Teller %d thread stopped \n", myThreadNumber);
 }
 
