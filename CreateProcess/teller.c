@@ -8,13 +8,14 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <unistd.h>
+
 #include "teller.h"
 
-static int TellerWaitTimes[NUMBER_OF_TELLERS][100] = {0};
-static int TellerWaitCounter[NUMBER_OF_TELLERS] = {0};
+int TellerWaitTimes[NUMBER_OF_TELLERS][100] = {{0}};
+int TellerWaitCounter[NUMBER_OF_TELLERS] = {0};
 
-static pthread_t threads[NUMBER_OF_TELLERS] ;	// where we store the results of the thread creation
-static pthread_t *threadIDs[NUMBER_OF_TELLERS] = {&threads[0], &threads[1], &threads[2]};
+pthread_t tellerThreads[NUMBER_OF_TELLERS] ;	// where we store the results of the thread creation
+pthread_t *tellerThreadIDs[NUMBER_OF_TELLERS] = {&tellerThreads[0], &tellerThreads[1], &tellerThreads[2]};
 
 extern conQueue cq;
 
@@ -45,16 +46,18 @@ static void TellerThread( int *threadNumber )
 			cust->timeWithTeller = sleepTimeUS * SIMULATION_MINUTE_MSEC;
 			cust->timeEnd = getSimTimeMilliMins();
 
+			/*
 			printf("Teller %d finished processing customer %d at %d.\n",
 								myThreadNumber,
 								cust->id,
 								cust->timeEnd);
+			*/
 
-			/*printf("Teller %d finished processing customer %d at %dh %dm.\n",
+			printf("Teller %d finished processing customer %d at %dh %dm.\n",
 					myThreadNumber, 
 					cust->id, 
 					getHour(cust->timeEnd), 
-					getMinute(cust->timeEnd));*/
+					getMinute(cust->timeEnd));
 		}
 	} while (cust || getSimTimeMins() < MINUTES_PER_DAY);
 	printf("Teller %d thread stopped \n", myThreadNumber);
@@ -76,6 +79,6 @@ void StartTellerThreads()
 	// now create the threads and pass along its thread number from the loop counter.
 	for ( loopCounter = 0 ; loopCounter < NUMBER_OF_TELLERS ; loopCounter++ )
 	{
-		pthread_create( threadIDs[loopCounter], &threadAttributes, (void *)TellerThread, &loopCounter ) ;
+		pthread_create( tellerThreadIDs[loopCounter], &threadAttributes, (void *)TellerThread, &loopCounter ) ;
 	}
 }

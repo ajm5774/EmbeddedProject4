@@ -9,13 +9,13 @@
 #include <pthread.h>
 #include <unistd.h>
 
-#include "customer.h"
 #include "TellerInterface.h"
+#include "customer.h"
 
-Customer * custArray[1000];
-static pthread_t custThreadID;
+extern pthread_t customerThread;
 
 extern conQueue cq;
+extern Customer * custArray[1000];
 
 //Method to create customers
 static void CustomersThread(int * arg)
@@ -38,8 +38,8 @@ static void CustomersThread(int * arg)
 		cust->timeEnd = 0;
 		cust->behind = 0;
 
-		printf("Customer %d arrived at %d.\n", cust->id, cust->timeStart);
-		//printf("Customer %d arrived at %dh %dm.\n", cust->id, getHour(cust->timeStart), getMinute(cust->timeStart));
+		//printf("Customer %d arrived at %ld.\n", cust->id, cust->timeStart);
+		printf("Customer %d arrived at %dh %dm.\n", cust->id, getHour(cust->timeStart), getMinute(cust->timeStart));
 
 		//Add customer to the list of all customers (for metrics)
 		custArray[id++] = cust;
@@ -67,7 +67,7 @@ void StartCustomerThread()
 	pthread_attr_setschedparam(&threadAttributes, &parameters) ;	// set up the pthread_attr struct with the updated priority
 
 	//start customer creation thread
-	pthread_create( &custThreadID, &threadAttributes, (void *)CustomersThread, 0) ;
+	pthread_create( &customerThread, &threadAttributes, (void *)CustomersThread, 0) ;
 }
 
 

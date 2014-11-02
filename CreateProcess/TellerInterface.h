@@ -22,5 +22,6 @@ long setStartTime();
 
 int getHour(int time);
 int getMinute(int time);
+int getSecond(int time);
 
 #endif /* TELLERINTERFACE_H_ */

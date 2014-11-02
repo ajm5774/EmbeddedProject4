@@ -1,4 +1,6 @@
+#include <stdio.h>
 #include <time.h>
+
 #include "TellerInterface.h"
 
 struct timespec start, current;
@@ -19,9 +21,8 @@ long getSimTimeMilliMins()
       return 0;
     }
     secDiff = current.tv_sec - start.tv_sec;
-    nanosecDiff = current.tv_nsec - start.tv_nsec;
-    ret = secDiff*1000 + nanosecDiff/100000;
-    printf("Sim Milli-Minutes: %d, with secDiff %d\n", ret, secDiff);
+    nanoSecDiff = current.tv_nsec - start.tv_nsec;
+    ret = secDiff*1000000/SIMULATION_MINUTE_MSEC + nanoSecDiff/1000/SIMULATION_MINUTE_MSEC;
 	return ret;
 }
 
@@ -40,5 +41,10 @@ int getHour(int timeMs) {
 
 int getMinute(int timeMs) {
 	return timeMs/1000 % 60;
+}
+
+int getSecond(int timeMs) {
+	return timeMs/1000;
+}
 }
 
